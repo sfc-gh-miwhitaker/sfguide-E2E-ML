@@ -6,10 +6,14 @@
 -- COPY THIS ENTIRE SCRIPT INTO SNOWSIGHT AND CLICK "RUN ALL"
 -- ============================================================================
 
--- Expiration check
 SET DEMO_EXPIRATION = '2025-01-15';
-SELECT IFF(CURRENT_DATE() > $DEMO_EXPIRATION::DATE,
-    1/0, 'Demo valid until ' || $DEMO_EXPIRATION) AS EXPIRATION_STATUS;
+
+BEGIN
+    IF CURRENT_DATE() > TO_DATE($DEMO_EXPIRATION) THEN
+        LET msg STRING := 'Demo expired on ' || $DEMO_EXPIRATION || '. Please refresh the demo.';
+        RAISE STATEMENT_ERROR(MSG => msg);
+    END IF;
+END;
 
 USE ROLE SYSADMIN;
 
