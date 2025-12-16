@@ -119,8 +119,9 @@ SELECT
 FROM TABLE(GENERATOR(ROWCOUNT => 370000)),
     loan_types,
     loan_purposes,
-    counties
-COMMENT = 'DEMO: Synthetic mortgage lending data | Expires: 2026-01-15';
+    counties;
+
+COMMENT ON TABLE MORTGAGE_LENDING_DEMO_DATA IS 'DEMO: Synthetic mortgage lending data | Expires: 2026-01-15';
 
 -- ============================================================================
 -- GIT INTEGRATION
