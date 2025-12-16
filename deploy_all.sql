@@ -1,45 +1,67 @@
 -- ============================================================================
 -- DEMO: End-to-End ML Pipeline
 -- Author: SE Community
--- Expires: 2025-01-15
+-- Expires: 2026-01-15
 -- ============================================================================
 -- COPY THIS ENTIRE SCRIPT INTO SNOWSIGHT AND CLICK "RUN ALL"
 -- ============================================================================
-
-SET DEMO_EXPIRATION = '2025-01-15';
-
-BEGIN
-    IF CURRENT_DATE() > TO_DATE($DEMO_EXPIRATION) THEN
-        LET msg STRING := 'Demo expired on ' || $DEMO_EXPIRATION || '. Please refresh the demo.';
-        RAISE STATEMENT_ERROR(MSG => msg);
-    END IF;
-END;
 
 USE ROLE SYSADMIN;
 
 -- Shared demo database and schema
 CREATE DATABASE IF NOT EXISTS SNOWFLAKE_EXAMPLE;
 CREATE SCHEMA IF NOT EXISTS SNOWFLAKE_EXAMPLE.E2E_MLOPS
-    COMMENT = 'DEMO: End-to-End ML Pipeline | Expires: 2025-01-15';
+    COMMENT = 'DEMO: End-to-End ML Pipeline | Expires: 2026-01-15';
 
--- Warehouse (SFE_ prefix)
+-- Warehouse (SFE_ prefix) - Create first to enable expiration check
 CREATE WAREHOUSE IF NOT EXISTS SFE_E2E_MLOPS_WH
     WAREHOUSE_SIZE = 'MEDIUM'
     AUTO_SUSPEND = 60
     AUTO_RESUME = TRUE
-    INITIALLY_SUSPENDED = TRUE
-    COMMENT = 'DEMO: E2E ML Pipeline | Expires: 2025-01-15';
+    INITIALLY_SUSPENDED = FALSE -- Start active for expiration check
+    COMMENT = 'DEMO: E2E ML Pipeline | Expires: 2026-01-15';
 
--- Compute pool (SFE_ prefix)
+USE WAREHOUSE SFE_E2E_MLOPS_WH;
+
+-- ============================================================================
+-- EXPIRATION CHECK
+-- ============================================================================
+-- This demo expires 30 days after creation.
+-- If expired, deployment should be halted and the repository forked with updated dates.
+-- Expiration date: 2026-01-15
+
+SELECT 
+    '2026-01-15'::DATE AS expiration_date,
+    CURRENT_DATE() AS current_date,
+    DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) AS days_remaining,
+    CASE 
+        WHEN DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) < 0 
+        THEN '🚫 EXPIRED - Do not deploy. Fork repository and update expiration date.'
+        WHEN DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) <= 7
+        THEN '⚠️  EXPIRING SOON - ' || DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) || ' days remaining'
+        ELSE '✅ ACTIVE - ' || DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) || ' days remaining'
+    END AS demo_status;
+
+-- ⚠️  MANUAL CHECK REQUIRED:
+-- If the demo_status shows "🚫 EXPIRED", STOP HERE and do not proceed with deployment.
+-- Fork the repository and update the expiration date before deploying.
+
+-- ============================================================================
+-- COMPUTE POOL (requires ACCOUNTADMIN)
+-- ============================================================================
+USE ROLE ACCOUNTADMIN;
+
 CREATE COMPUTE POOL IF NOT EXISTS SFE_E2E_MLOPS_CP
     MIN_NODES = 1
     MAX_NODES = 1
     INSTANCE_FAMILY = CPU_X64_M
     AUTO_RESUME = TRUE
     AUTO_SUSPEND_SECS = 300
-    COMMENT = 'DEMO: E2E ML Pipeline | Expires: 2025-01-15';
+    COMMENT = 'DEMO: E2E ML Pipeline | Expires: 2026-01-15';
 
-USE WAREHOUSE SFE_E2E_MLOPS_WH;
+GRANT USAGE, MONITOR ON COMPUTE POOL SFE_E2E_MLOPS_CP TO ROLE SYSADMIN;
+
+USE ROLE SYSADMIN;
 USE SCHEMA SNOWFLAKE_EXAMPLE.E2E_MLOPS;
 
 -- ============================================================================
@@ -98,15 +120,15 @@ FROM TABLE(GENERATOR(ROWCOUNT => 370000)),
     loan_types,
     loan_purposes,
     counties
-COMMENT = 'DEMO: Synthetic mortgage lending data | Expires: 2025-01-15';
+COMMENT = 'DEMO: Synthetic mortgage lending data | Expires: 2026-01-15';
 
 -- ============================================================================
 -- GIT INTEGRATION
 -- ============================================================================
 USE ROLE ACCOUNTADMIN;
-CREATE API INTEGRATION IF NOT EXISTS SFE_GIT_API_INTEGRATION
+CREATE OR REPLACE API INTEGRATION SFE_GIT_API_INTEGRATION
     API_PROVIDER = git_https_api
-    API_ALLOWED_PREFIXES = ('https://github.com/sfc-gh-miwhitaker')
+    API_ALLOWED_PREFIXES = ('https://github.com/sfc-gh-miwhitaker/')
     ENABLED = TRUE
     COMMENT = 'DEMO: Git integration for Snowflake demos';
 GRANT USAGE ON INTEGRATION SFE_GIT_API_INTEGRATION TO ROLE SYSADMIN;
