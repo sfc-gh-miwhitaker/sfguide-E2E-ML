@@ -139,10 +139,8 @@ SELECT
     AS STATUS;
 
 -- ============================================================================
--- CLEANUP (uncomment to remove all demo objects)
+-- CLEANUP
 -- ============================================================================
--- USE ROLE SYSADMIN;
--- DROP SCHEMA IF EXISTS SNOWFLAKE_EXAMPLE.E2E_MLOPS CASCADE;
--- DROP WAREHOUSE IF EXISTS SFE_E2E_MLOPS_WH;
--- DROP COMPUTE POOL IF EXISTS SFE_E2E_MLOPS_CP;
+-- To remove all demo resources, run cleanup.sql
+-- This includes: schema, warehouse, compute pool, and all contained objects
 
