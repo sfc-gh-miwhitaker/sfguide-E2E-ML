@@ -149,7 +149,7 @@ ALTER GIT REPOSITORY GIT_REPO_E2E_MLOPS FETCH;
 -- ============================================================================
 CREATE OR REPLACE NOTEBOOK TRAIN_DEPLOY_MONITOR_ML
     FROM '@GIT_REPO_E2E_MLOPS/branches/main/'
-    MAIN_FILE = 'train_deploy_monitor_ML_in_snowflake.ipynb'
+    MAIN_FILE = 'TRAIN_DEPLOY_MONITOR_ML.ipynb'
     QUERY_WAREHOUSE = SFE_E2E_MLOPS_WH
     RUNTIME_NAME = 'SYSTEM$BASIC_RUNTIME'
     COMPUTE_POOL = 'SFE_E2E_MLOPS_CP'
