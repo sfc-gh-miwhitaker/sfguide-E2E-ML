@@ -8,8 +8,6 @@ on:
 permissions:
   contents: read
   actions: read
-  metadata: read
-  administration: write
 
 jobs:
   expire:
@@ -46,7 +44,7 @@ jobs:
         if: steps.check.outputs.expired == 'true'
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.REPO_ADMIN_TOKEN != '' && secrets.REPO_ADMIN_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
