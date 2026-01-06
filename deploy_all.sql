@@ -1,7 +1,7 @@
 -- ============================================================================
 -- DEMO: End-to-End ML Pipeline
 -- Author: SE Community
--- Expires: 2026-01-15
+-- Expires: 2026-02-05
 -- ============================================================================
 -- COPY THIS ENTIRE SCRIPT INTO SNOWSIGHT AND CLICK "RUN ALL"
 -- ============================================================================
@@ -11,15 +11,15 @@ USE ROLE SYSADMIN;
 -- Shared demo database and schema
 CREATE DATABASE IF NOT EXISTS SNOWFLAKE_EXAMPLE;
 CREATE SCHEMA IF NOT EXISTS SNOWFLAKE_EXAMPLE.E2E_MLOPS
-    COMMENT = 'DEMO: End-to-End ML Pipeline | Expires: 2026-01-15';
+    COMMENT = 'DEMO: End-to-End ML Pipeline | Expires: 2026-02-05';
 
 -- Warehouse (SFE_ prefix) - Create first to enable expiration check
 CREATE WAREHOUSE IF NOT EXISTS SFE_E2E_MLOPS_WH
     WAREHOUSE_SIZE = 'MEDIUM'
     AUTO_SUSPEND = 60
     AUTO_RESUME = TRUE
-    INITIALLY_SUSPENDED = FALSE -- Start active for expiration check
-    COMMENT = 'DEMO: E2E ML Pipeline | Expires: 2026-01-15';
+    INITIALLY_SUSPENDED = TRUE
+    COMMENT = 'DEMO: E2E ML Pipeline | Expires: 2026-02-05';
 
 USE WAREHOUSE SFE_E2E_MLOPS_WH;
 
@@ -28,23 +28,30 @@ USE WAREHOUSE SFE_E2E_MLOPS_WH;
 -- ============================================================================
 -- This demo expires 30 days after creation.
 -- If expired, deployment should be halted and the repository forked with updated dates.
--- Expiration date: 2026-01-15
+-- Expiration date: 2026-02-05
 
-SELECT 
-    '2026-01-15'::DATE AS expiration_date,
+SELECT
+    '2026-02-05'::DATE AS expiration_date,
     CURRENT_DATE() AS current_date,
-    DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) AS days_remaining,
-    CASE 
-        WHEN DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) < 0 
-        THEN '🚫 EXPIRED - Do not deploy. Fork repository and update expiration date.'
-        WHEN DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) <= 7
-        THEN '⚠️  EXPIRING SOON - ' || DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) || ' days remaining'
-        ELSE '✅ ACTIVE - ' || DATEDIFF('day', CURRENT_DATE(), '2026-01-15'::DATE) || ' days remaining'
+    DATEDIFF('day', CURRENT_DATE(), '2026-02-05'::DATE) AS days_remaining,
+    CASE
+        WHEN DATEDIFF('day', CURRENT_DATE(), '2026-02-05'::DATE) < 0
+        THEN 'EXPIRED - Do not deploy. Fork repository and update expiration date.'
+        WHEN DATEDIFF('day', CURRENT_DATE(), '2026-02-05'::DATE) <= 7
+        THEN 'EXPIRING_SOON - ' || DATEDIFF('day', CURRENT_DATE(), '2026-02-05'::DATE) || ' days remaining'
+        ELSE 'ACTIVE - ' || DATEDIFF('day', CURRENT_DATE(), '2026-02-05'::DATE) || ' days remaining'
     END AS demo_status;
 
--- ⚠️  MANUAL CHECK REQUIRED:
--- If the demo_status shows "🚫 EXPIRED", STOP HERE and do not proceed with deployment.
--- Fork the repository and update the expiration date before deploying.
+-- Hard stop if expired.
+EXECUTE IMMEDIATE $$
+DECLARE
+  demo_expired EXCEPTION (-20001, 'DEMO EXPIRED: 2026-02-05. Do not deploy. Fork repo and update expiration date.');
+BEGIN
+  IF (CURRENT_DATE() > TO_DATE('2026-02-05')) THEN
+    RAISE demo_expired;
+  END IF;
+END;
+$$;
 
 -- ============================================================================
 -- COMPUTE POOL (requires ACCOUNTADMIN)
@@ -56,8 +63,9 @@ CREATE COMPUTE POOL IF NOT EXISTS SFE_E2E_MLOPS_CP
     MAX_NODES = 1
     INSTANCE_FAMILY = CPU_X64_M
     AUTO_RESUME = TRUE
+    INITIALLY_SUSPENDED = TRUE
     AUTO_SUSPEND_SECS = 300
-    COMMENT = 'DEMO: E2E ML Pipeline | Expires: 2026-01-15';
+    COMMENT = 'DEMO: E2E ML Pipeline | Expires: 2026-02-05';
 
 GRANT USAGE, MONITOR ON COMPUTE POOL SFE_E2E_MLOPS_CP TO ROLE SYSADMIN;
 
@@ -121,26 +129,26 @@ FROM TABLE(GENERATOR(ROWCOUNT => 370000)),
     loan_purposes,
     counties;
 
-COMMENT ON TABLE MORTGAGE_LENDING_DEMO_DATA IS 'DEMO: Synthetic mortgage lending data | Expires: 2026-01-15';
+COMMENT ON TABLE MORTGAGE_LENDING_DEMO_DATA IS 'DEMO: Synthetic mortgage lending data | Expires: 2026-02-05';
 
 -- ============================================================================
 -- GIT INTEGRATION
 -- ============================================================================
 USE ROLE ACCOUNTADMIN;
-CREATE OR REPLACE API INTEGRATION SFE_GIT_API_INTEGRATION
+CREATE API INTEGRATION IF NOT EXISTS SFE_GIT_API_INTEGRATION
     API_PROVIDER = git_https_api
-    API_ALLOWED_PREFIXES = ('https://github.com/sfc-gh-miwhitaker/')
+    API_ALLOWED_PREFIXES = ('https://github.com/snowflake-labs/')
     ENABLED = TRUE
-    COMMENT = 'DEMO: Git integration for Snowflake demos';
+    COMMENT = 'DEMO: Git integration for Snowflake demos | Expires: 2026-02-05';
 GRANT USAGE ON INTEGRATION SFE_GIT_API_INTEGRATION TO ROLE SYSADMIN;
 
 USE ROLE SYSADMIN;
 USE SCHEMA SNOWFLAKE_EXAMPLE.E2E_MLOPS;
 
 CREATE OR REPLACE GIT REPOSITORY GIT_REPO_E2E_MLOPS
-    ORIGIN = 'https://github.com/sfc-gh-miwhitaker/sfguide-E2E-ML'
+    ORIGIN = 'https://github.com/snowflake-labs/sfguide-E2E-ML.git'
     API_INTEGRATION = 'SFE_GIT_API_INTEGRATION'
-    COMMENT = 'DEMO: E2E ML repo | Expires: 2025-01-15';
+    COMMENT = 'DEMO: E2E ML repo | Expires: 2026-02-05';
 
 ALTER GIT REPOSITORY GIT_REPO_E2E_MLOPS FETCH;
 
@@ -150,20 +158,19 @@ ALTER GIT REPOSITORY GIT_REPO_E2E_MLOPS FETCH;
 CREATE OR REPLACE NOTEBOOK TRAIN_DEPLOY_MONITOR_ML
     FROM '@GIT_REPO_E2E_MLOPS/branches/main/'
     MAIN_FILE = 'TRAIN_DEPLOY_MONITOR_ML.ipynb'
+    WAREHOUSE = SFE_E2E_MLOPS_WH
     QUERY_WAREHOUSE = SFE_E2E_MLOPS_WH
     RUNTIME_NAME = 'SYSTEM$BASIC_RUNTIME'
     COMPUTE_POOL = 'SFE_E2E_MLOPS_CP'
     IDLE_AUTO_SHUTDOWN_TIME_SECONDS = 3600
-    COMMENT = 'DEMO: E2E ML notebook | Expires: 2025-01-15';
+    COMMENT = 'DEMO: E2E ML notebook | Expires: 2026-02-05';
 
 SHOW NOTEBOOKS IN SCHEMA;
-SELECT
-    'Setup complete! Data: ' || (SELECT COUNT(*) FROM MORTGAGE_LENDING_DEMO_DATA) || ' rows generated.'
-    AS STATUS;
+SELECT COUNT(*) AS MORTGAGE_LENDING_DEMO_DATA_ROW_COUNT
+FROM MORTGAGE_LENDING_DEMO_DATA;
 
 -- ============================================================================
 -- CLEANUP
 -- ============================================================================
 -- To remove all demo resources, run cleanup.sql
 -- This includes: schema, warehouse, compute pool, and all contained objects
-

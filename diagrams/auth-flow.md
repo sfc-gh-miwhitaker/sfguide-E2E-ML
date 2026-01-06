@@ -1,7 +1,7 @@
 # Auth Flow - End-to-End ML Pipeline Demo
 Author: SE Community
-Last Updated: 2024-12-16
-Expires: 2025-01-15
+Last Updated: 2025-12-16
+Expires: 2026-02-05
 Status: Reference Implementation
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)
@@ -21,64 +21,64 @@ sequenceDiagram
     participant Objects as E2E_MLOPS Objects
     participant GitInt as Git Integration
     participant GitHub
-    
+
     User->>Snowsight: Login (username/password or SSO)
     Snowsight->>AuthService: Authenticate User
     AuthService-->>Snowsight: Session Token
-    
+
     User->>Snowsight: Open deploy_all.sql
     User->>Snowsight: Execute Script
-    
+
     Snowsight->>RoleService: USE ROLE SYSADMIN
     RoleService-->>Snowsight: SYSADMIN Active
-    
+
     Note over Snowsight,RoleService: SYSADMIN has CREATE DATABASE<br/>and CREATE WAREHOUSE privileges
-    
+
     Snowsight->>DB: CREATE DATABASE IF NOT EXISTS SNOWFLAKE_EXAMPLE
     DB-->>Snowsight: Success (or already exists)
-    
+
     Snowsight->>DB: CREATE SCHEMA E2E_MLOPS
     DB-->>Snowsight: Success
-    
+
     Snowsight->>Objects: CREATE WAREHOUSE SFE_E2E_MLOPS_WH
     Objects-->>Snowsight: Success
-    
+
     Snowsight->>Objects: CREATE COMPUTE POOL SFE_E2E_MLOPS_CP
     Objects-->>Snowsight: Success
-    
+
     Note over Snowsight,RoleService: Switch to ACCOUNTADMIN<br/>for Git integration setup
-    
+
     Snowsight->>RoleService: USE ROLE ACCOUNTADMIN
     RoleService-->>Snowsight: ACCOUNTADMIN Active
-    
+
     Snowsight->>GitInt: CREATE API INTEGRATION SFE_GIT_API_INTEGRATION
     GitInt-->>Snowsight: Success
-    
+
     Snowsight->>GitInt: GRANT USAGE ON INTEGRATION TO SYSADMIN
     GitInt-->>Snowsight: Permission Granted
-    
+
     Note over Snowsight,RoleService: Return to SYSADMIN for<br/>remaining operations
-    
+
     Snowsight->>RoleService: USE ROLE SYSADMIN
     RoleService-->>Snowsight: SYSADMIN Active
-    
+
     Snowsight->>Objects: CREATE GIT REPOSITORY (uses integration)
     Objects->>GitInt: Validate Integration Permission
     GitInt-->>Objects: Permission OK
     Objects->>GitHub: Fetch Repository (HTTPS)
     GitHub-->>Objects: Repository Contents
     Objects-->>Snowsight: Success
-    
+
     Snowsight->>Objects: CREATE NOTEBOOK (from Git repo)
     Objects-->>Snowsight: Success
-    
+
     User->>Snowsight: Open Notebook
     Snowsight->>RoleService: Verify SYSADMIN Active
     RoleService-->>Snowsight: Authorized
     Snowsight->>Objects: Load Notebook
     Objects-->>Snowsight: Notebook Ready
     Snowsight-->>User: Notebook Interface
-    
+
     User->>Snowsight: Execute Notebook Cells
     Snowsight->>Objects: Query/Write Operations
     Note over Snowsight,Objects: All operations run as SYSADMIN<br/>using SFE_E2E_MLOPS_WH
@@ -94,7 +94,7 @@ sequenceDiagram
   - Technology: Snowflake authentication service
   - Methods: Native, SAML, OAuth, Okta, ADFS
   - Session: Tokens valid for configured session timeout
-  
+
 ### Authorization Layer
 - **Role Service**
   - Purpose: Manage role context and permission checks
@@ -141,24 +141,24 @@ GRANT USAGE ON INTEGRATION ... TO SYSADMIN
   - Type: API Integration (git_https_api)
   - Credentials: None required (public repository)
   - Access: Read-only
-  - Scope: Allowed prefixes (https://github.com/sfc-gh-miwhitaker)
+  - Scope: Allowed prefixes (`https://github.com/snowflake-labs/`)
   - Security: ACCOUNTADMIN creates, SYSADMIN uses
 
 ### Object Ownership
 All objects created by SYSADMIN:
 ```
 SNOWFLAKE_EXAMPLE (Database)
-├── E2E_MLOPS (Schema)
-    ├── MORTGAGE_LENDING_DEMO_DATA (Table)
-    ├── TRAIN_DEPLOY_MONITOR_ML (Notebook)
-    ├── GIT_REPO_E2E_MLOPS (Git Repository)
-    ├── MORTGAGE_LENDING_MLOPS_0 (Model Registry)
-    └── Model Monitors (Monitoring Objects)
+|-- E2E_MLOPS (Schema)
+    |-- MORTGAGE_LENDING_DEMO_DATA (Table)
+    |-- TRAIN_DEPLOY_MONITOR_ML (Notebook)
+    |-- GIT_REPO_E2E_MLOPS (Git Repository)
+    |-- MORTGAGE_LENDING_MLOPS_0 (Model Registry)
+    |-- Model Monitors (Monitoring Objects)
 
 Account-Level Objects:
-├── SFE_E2E_MLOPS_WH (Warehouse)
-├── SFE_E2E_MLOPS_CP (Compute Pool)
-└── SFE_GIT_API_INTEGRATION (API Integration - ACCOUNTADMIN)
+|-- SFE_E2E_MLOPS_WH (Warehouse)
+|-- SFE_E2E_MLOPS_CP (Compute Pool)
+|-- SFE_GIT_API_INTEGRATION (API Integration - ACCOUNTADMIN)
 ```
 
 ### Permission Flow
@@ -200,17 +200,17 @@ Account-Level Objects:
 
 ```
 SYSADMIN Role:
-  ✅ CREATE DATABASE, SCHEMA, WAREHOUSE, COMPUTE POOL
-  ✅ CREATE TABLE, VIEW, NOTEBOOK
-  ✅ CREATE GIT REPOSITORY (with integration permission)
-  ✅ CREATE MODEL, MODEL MONITOR
-  ✅ USAGE on SFE_GIT_API_INTEGRATION (explicitly granted)
-  ❌ CREATE INTEGRATION (requires ACCOUNTADMIN)
+  ALLOW: CREATE DATABASE, SCHEMA, WAREHOUSE, COMPUTE POOL
+  ALLOW: CREATE TABLE, VIEW, NOTEBOOK
+  ALLOW: CREATE GIT REPOSITORY (with integration permission)
+  ALLOW: CREATE MODEL, MODEL MONITOR
+  ALLOW: USAGE on SFE_GIT_API_INTEGRATION (explicitly granted)
+  DENY:  CREATE INTEGRATION (requires ACCOUNTADMIN)
 
 ACCOUNTADMIN Role:
-  ✅ All SYSADMIN permissions
-  ✅ CREATE INTEGRATION
-  ✅ GRANT permissions to other roles
+  ALLOW: All SYSADMIN permissions
+  ALLOW: CREATE INTEGRATION
+  ALLOW: GRANT permissions to other roles
 ```
 
 ## Best Practices
@@ -236,5 +236,4 @@ ACCOUNTADMIN Role:
    - Use allowed_prefixes to restrict access scope
 
 ## Change History
-See `.cursor/DIAGRAM_CHANGELOG.md` for version history.
-
+See git history for changes.

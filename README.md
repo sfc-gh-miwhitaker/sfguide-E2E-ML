@@ -1,29 +1,29 @@
 ![Reference Implementation](https://img.shields.io/badge/Reference-Implementation-blue)
 ![Ready to Run](https://img.shields.io/badge/Ready%20to%20Run-Yes-green)
 ![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?logo=snowflake&logoColor=white)
-![Expires](https://img.shields.io/badge/Expires-2025--01--15-orange)
+![Expires](https://img.shields.io/badge/Expires-2026--02--05-orange)
 
 # End-to-End ML Pipeline Demo
 
-> **DEMONSTRATION PROJECT - EXPIRES: 2025-01-15**  
-> This demo uses Snowflake ML features current as of December 2024.  
+> **DEMONSTRATION PROJECT - EXPIRES: 2026-02-05**<br>
+> This demo uses Snowflake ML features current as of December 2025.<br>
 > After expiration, this repository will be archived and made private.
 
-**Author:** SE Community  
-**Purpose:** Reference implementation for end-to-end ML workflow in Snowflake  
-**Created:** 2024-12-16 | **Expires:** 2025-01-15 (30 days) | **Status:** ACTIVE
+- **Author:** SE Community
+- **Purpose:** Reference implementation for end-to-end ML workflow in Snowflake
+- **Created:** 2025-12-16 | **Expires:** 2026-02-05 (30 days) | **Status:** ACTIVE
 
 ---
 
-## 👋 First Time Here?
+## First Time Here?
 
 Follow these steps to deploy and run the complete ML pipeline:
 
-1. **Deploy Infrastructure** → Copy `deploy_all.sql` into Snowsight (2 min)
-2. **Run Setup** → Click "Run All" - generates 370K rows of synthetic data (5 min)
-3. **Open Notebook** → Launch `TRAIN_DEPLOY_MONITOR_ML` notebook (1 min)
-4. **Execute Workflow** → Run notebook cells top-to-bottom (15 min)
-5. **Cleanup** → When finished, run `cleanup.sql` to remove all resources (1 min)
+1. **Deploy Infrastructure** -> Copy `deploy_all.sql` into Snowsight (2 min)
+2. **Run Setup** -> Click "Run All" - generates 370K rows of synthetic data (5 min)
+3. **Open Notebook** -> Launch `TRAIN_DEPLOY_MONITOR_ML` notebook (1 min)
+4. **Execute Workflow** -> Run notebook cells top-to-bottom (15 min)
+5. **Cleanup** -> When finished, run `cleanup.sql` to remove all resources (1 min)
 
 **Total setup time: ~23 minutes** | **Cleanup time: ~1 minute**
 
@@ -33,36 +33,36 @@ Follow these steps to deploy and run the complete ML pipeline:
 
 This reference implementation demonstrates a production-grade end-to-end machine learning workflow entirely within Snowflake:
 
-### 🎯 Feature Store
+### Feature Store
 - Store and track engineered feature definitions
 - Reproducible feature computation across train/test datasets
 - Automated feature lineage tracking
 
-### 🤖 Model Training & HPO
+### Model Training and HPO
 - **Baseline Model**: XGBoost classifier with default parameters
 - **Optimized Model**: XGBoost with distributed hyperparameter optimization (HPO)
 - Comparison of model performance to identify overfitting
 
-### 📦 Model Registry
+### Model Registry
 - Version control for ML models with metadata tracking
 - Inference capabilities (batch and real-time)
 - Built-in explainability with SHAP values
 - Model comparison and promotion workflows
 
-### 📊 ML Observability
+### ML Observability
 - Model monitoring over 1 year of predictions
 - Performance metrics: F1, Precision, Recall
 - Model drift detection (prediction distribution changes)
 - Side-by-side model comparison
 - Data quality issue identification
 
-### 🔄 Data & Model Lineage
+### Data and Model Lineage
 - Track data origin and feature computation
 - View datasets used for model training
 - Monitor available model versions
 - End-to-end lineage visualization
 
-### ⚡ Advanced Features (Optional)
+### Advanced Features (Optional)
 - Distributed GPU model training
 - Snowpark Container Services (SPCS) deployment for inference
 - REST API scoring endpoints
@@ -74,17 +74,17 @@ This reference implementation demonstrates a production-grade end-to-end machine
 ### Data Flow
 ```
 Synthetic Data Generation (370K rows)
-  ↓
+  |
 Feature Engineering (10 features)
-  ↓
+  |
 Train/Test Split (70/30)
-  ↓
+  |
 Model Training (XGBoost + HPO)
-  ↓
+  |
 Model Registry (version control)
-  ↓
+  |
 Batch Inference
-  ↓
+  |
 Model Monitoring (drift + performance)
 ```
 
@@ -136,7 +136,7 @@ SHOW NOTEBOOKS IN SCHEMA SNOWFLAKE_EXAMPLE.E2E_MLOPS;
 #### 3. Run the Notebook (15 minutes)
 
 **Navigate to Notebook:**
-1. In Snowsight, go to **Projects** → **Notebooks**
+1. In Snowsight, go to **Projects** -> **Notebooks**
 2. Select database: `SNOWFLAKE_EXAMPLE`
 3. Select schema: `E2E_MLOPS`
 4. Open notebook: `TRAIN_DEPLOY_MONITOR_ML`
@@ -218,21 +218,20 @@ Continuous monitoring of both models:
 When finished with the demo, remove all resources using the dedicated cleanup script:
 
 1. Open `cleanup.sql`
-2. Uncomment the confirmation line: `SET CONFIRM_CLEANUP = 'YES';`
-3. Copy the entire script into Snowsight
-4. Click "Run All"
+2. Copy the entire script into Snowsight
+3. Click "Run All"
 
 **What gets removed:**
-- ✅ Schema `SNOWFLAKE_EXAMPLE.E2E_MLOPS` (CASCADE - all tables, notebook, models, monitors)
-- ✅ Warehouse `SFE_E2E_MLOPS_WH`
-- ✅ Compute Pool `SFE_E2E_MLOPS_CP`
-- ✅ Verification checks confirm successful cleanup
+- Schema `SNOWFLAKE_EXAMPLE.E2E_MLOPS` (CASCADE - all tables, notebook, models, monitors)
+- Warehouse `SFE_E2E_MLOPS_WH`
+- Compute Pool `SFE_E2E_MLOPS_CP`
+- Verification checks confirm successful cleanup
 
 **What stays (shared infrastructure):**
-- ℹ️ `SFE_GIT_API_INTEGRATION` (may be used by other demos)
-- ℹ️ `SNOWFLAKE_EXAMPLE` database (shared across demos)
+- `SFE_GIT_API_INTEGRATION` (may be used by other demos)
+- `SNOWFLAKE_EXAMPLE` database (shared across demos)
 
-The cleanup script includes built-in safety confirmation and verification steps.
+The cleanup script includes verification steps. Review it before running, as it drops demo objects.
 
 ---
 
@@ -245,7 +244,7 @@ SHOW TABLES LIKE 'MORTGAGE_LENDING_DEMO_DATA' IN SCHEMA SNOWFLAKE_EXAMPLE.E2E_ML
 
 -- Regenerate if needed
 USE SCHEMA SNOWFLAKE_EXAMPLE.E2E_MLOPS;
--- Run the CREATE TABLE AS SELECT from deploy_all.sql (lines 57-101)
+-- Run the CREATE TABLE AS SELECT from deploy_all.sql
 ```
 
 ### Notebook Not Found
@@ -255,7 +254,7 @@ SHOW NOTEBOOKS IN SCHEMA SNOWFLAKE_EXAMPLE.E2E_MLOPS;
 
 -- Recreate from Git if needed
 ALTER GIT REPOSITORY GIT_REPO_E2E_MLOPS FETCH;
--- Run CREATE NOTEBOOK command from deploy_all.sql (lines 127-134)
+-- Run the CREATE NOTEBOOK command from deploy_all.sql
 ```
 
 ### Permission Errors
@@ -290,7 +289,7 @@ All dependencies managed by Snowflake:
 - SHAP for explainability
 
 ### Git Integration
-Notebook synced from: https://github.com/sfc-gh-miwhitaker/sfguide-E2E-ML
+Notebook synced from: `https://github.com/snowflake-labs/sfguide-e2e-ml`
 - Auto-fetched during deployment
 - Read-only access (public repository)
 - Updates via `ALTER GIT REPOSITORY ... FETCH`
@@ -329,4 +328,4 @@ See [LICENSE](LICENSE) file for details.
 
 ---
 
-**Demo Expiration:** 2025-01-15 | **Status:** ACTIVE
+**Demo Expiration:** 2026-02-05 | **Status:** ACTIVE

@@ -1,0 +1,69 @@
+name: Expire Demo Repository
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  metadata: read
+  administration: write
+
+jobs:
+  expire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read expiration date from deploy_all.sql
+        id: expires
+        shell: bash
+        run: |
+          set -euo pipefail
+          expiry="$(grep -E '^-- Expires:' deploy_all.sql | head -n 1 | awk '{print $4}')"
+          if [[ -z "${expiry}" ]]; then
+            echo "Could not parse expiration date from deploy_all.sql (expected: -- Expires: YYYY-MM-DD)" >&2
+            exit 1
+          fi
+          echo "expiry=${expiry}" >> "${GITHUB_OUTPUT}"
+
+      - name: Check if expired
+        id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          today="$(date -u +%F)"
+          expiry="${{ steps.expires.outputs.expiry }}"
+          if [[ "${today}" > "${expiry}" ]]; then
+            echo "expired=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "expired=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Archive and make private (if expired)
+        if: steps.check.outputs.expired == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            core.info(`Repository expired. Archiving and attempting to set private: ${owner}/${repo}`);
+
+            await github.rest.repos.update({
+              owner,
+              repo,
+              archived: true,
+            });
+
+            try {
+              await github.rest.repos.update({
+                owner,
+                repo,
+                private: true,
+              });
+            } catch (e) {
+              core.warning(`Could not set repository private (may require elevated permissions): ${e.message}`);
+            }

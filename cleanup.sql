@@ -3,10 +3,10 @@
 -- ============================================================================
 -- Author: SE Community
 -- Purpose: Remove all demo resources
--- Expires: 2026-01-15
--- 
--- ⚠️ WARNING: This script will DROP all E2E ML Pipeline demo objects!
--- 
+-- Expires: 2026-02-05
+--
+-- WARNING: This script will DROP all E2E ML Pipeline demo objects.
+--
 -- Objects Removed:
 --   - Notebook: TRAIN_DEPLOY_MONITOR_ML
 --   - Git Repository: GIT_REPO_E2E_MLOPS
@@ -14,7 +14,7 @@
 --   - Schema: SNOWFLAKE_EXAMPLE.E2E_MLOPS (CASCADE)
 --   - Warehouse: SFE_E2E_MLOPS_WH
 --   - Compute Pool: SFE_E2E_MLOPS_CP
--- 
+--
 -- Protected (NOT removed):
 --   - SNOWFLAKE_EXAMPLE database
 --   - SFE_GIT_API_INTEGRATION (may be shared by other demos)
@@ -63,7 +63,7 @@ SHOW WAREHOUSES LIKE 'SFE_E2E_MLOPS_WH';
 USE ROLE ACCOUNTADMIN;
 SHOW COMPUTE POOLS LIKE 'SFE_E2E_MLOPS_CP';
 
-SELECT '✅ Cleanup complete!' AS STATUS
+SELECT 'Cleanup complete.' AS STATUS
 UNION ALL
 SELECT 'Note: SFE_GIT_API_INTEGRATION is a shared resource and was NOT removed.' AS STATUS
 UNION ALL

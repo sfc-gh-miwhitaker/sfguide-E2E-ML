@@ -1,7 +1,7 @@
 # Data Model - End-to-End ML Pipeline Demo
 Author: SE Community
 Last Updated: 2025-12-16
-Expires: 2026-01-15
+Expires: 2026-02-05
 Status: Reference Implementation
 
 ![Snowflake](https://img.shields.io/badge/Snowflake-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)
@@ -43,5 +43,4 @@ erDiagram
   - Deps: Uses `MORTGAGE_LENDING_DEMO_DATA`, warehouse `SFE_E2E_MLOPS_WH`
 
 ## Change History
-See `.cursor/DIAGRAM_CHANGELOG.md` for vhistory.
-
+See git history for changes.
