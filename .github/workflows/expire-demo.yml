@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   actions: read
+  administration: write
 
 jobs:
   expire:
@@ -20,7 +21,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          expiry="$(grep -E '^-- Expires:' deploy_all.sql | head -n 1 | awk '{print $4}')"
+          expiry="$(
+            grep -E '^--[[:space:]]+Expires:' deploy_all.sql \
+              | head -n 1 \
+              | awk '{print $3}'
+          )"
           if [[ -z "${expiry}" ]]; then
             echo "Could not parse expiration date from deploy_all.sql (expected: -- Expires: YYYY-MM-DD)" >&2
             exit 1

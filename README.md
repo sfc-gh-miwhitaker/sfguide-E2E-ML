@@ -11,7 +11,7 @@
 
 - **Author:** SE Community
 - **Purpose:** Reference implementation for end-to-end ML workflow in Snowflake
-- **Created:** 2025-12-16 | **Expires:** 2026-02-05 (30 days) | **Status:** ACTIVE
+- **Created:** 2026-01-06 | **Expires:** 2026-02-05 (30 days) | **Status:** ACTIVE
 
 ---
 
